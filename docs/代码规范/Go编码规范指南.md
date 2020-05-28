@@ -275,6 +275,7 @@ func Myfunction(sum int) (a, b int) {
 ```
 
 ### - 命名
+
   - 需要注释来补充的命名就不算是好命名。
   - 使用可搜索的名称：单字母名称和数字常量很难从一大堆文字中搜索出来。单字母名称仅适用于短方法中的本地变量，名称长短应与其作用域相对应。若变量或常量可能在代码中多处使用，则应赋其以便于搜索的名称。
   - 做有意义的区分：Product和ProductInfo和ProductData没有区别，NameString和Name没有区别，要区分名称，就要以读者能鉴别不同之处的方式来区分 。
@@ -472,6 +473,7 @@ codeUsing(f, d)
 ```
 
 ### - 错误处理
+
   - error作为函数的值返回,必须对error进行处理
   - 错误描述如果是英文必须为小写，不需要标点结尾
   - 采用独立的错误流进行处理
@@ -545,6 +547,7 @@ import “github.com/repo/proj/src/net”
 goimports会自动帮你格式化
 
 ### - 参数传递
+
   - 对于少量数据，不要传递指针
   - 对于大量数据的struct可以考虑使用指针
   - 传入参数是map，slice，chan不要传递指针，因为map，slice，chan是引用类型，不需要传递指针的指针
@@ -622,41 +625,43 @@ goimports会自动帮你格式化
 
 # [ista脚](https://github.com/cristaloleg)/**[去咨询](https://github.com/cristaloleg/go-advice)**
 
--  看 [68](https://github.com/cristaloleg/go-advice/watchers)
--  取消星标[1.5千](https://github.com/cristaloleg/go-advice/stargazers)
--  叉子[98](https://github.com/cristaloleg/go-advice/network/members)
+- 看 [68](https://github.com/cristaloleg/go-advice/watchers)
+
+- 取消星标[1.5千](https://github.com/cristaloleg/go-advice/stargazers)
+
+- 叉子[98](https://github.com/cristaloleg/go-advice/network/members)
 
 - 
 
-   码
+  码
 
 - 
 
-   问题 0
+  问题 0
 
 - 
 
-   拉取要求 0
+  拉取要求 0
 
 - 
 
-   动作
+  动作
 
 - 
 
-   专案 0
+  专案 0
 
 - 
 
-   维基
+  维基
 
 - 
 
-   安全 0
+  安全 0
 
 - 
 
-   见解
+  见解
 
 Go advice的建议和技巧列表
 
@@ -853,9 +858,9 @@ const message = "warn message"
 
 This pattern works for `var` too.
 
--  every blocking or IO function call should be cancelable or at least timeoutable
+- every blocking or IO function call should be cancelable or at least timeoutable
 
--  
+- 
 
   implement
 
@@ -871,7 +876,7 @@ This pattern works for `var` too.
 
   - https://godoc.org/golang.org/x/tools/cmd/stringer
 
--  check your defer's error
+- check your defer's error
 
 ```
   defer func() {
@@ -882,11 +887,11 @@ This pattern works for `var` too.
   }()
 ```
 
--  don't use `checkErr` function which panics or does `os.Exit`
+- don't use `checkErr` function which panics or does `os.Exit`
 
--  use panic only in very specific situations, you have to handle error
+- use panic only in very specific situations, you have to handle error
 
--  
+- 
 
   don't use alias for enums 'cause this breaks type safety
 
@@ -905,23 +910,23 @@ This pattern works for `var` too.
   }
 ```
 
--  
+- 
 
   if you're going to omit returning params, do it explicitly
 
   - so prefer this `_ = f()` to this `f()`
 
--  the short form for slice initialization is `a := []T{}`
+- the short form for slice initialization is `a := []T{}`
 
--  
+- 
 
   iterate over array or slice using range loop
 
   - instead of `for i := 3; i < 7; i++ {...}` prefer `for _, c := range a[3:7] {...}`
 
--  use backquote(`) for multiline strings
+- use backquote(`) for multiline strings
 
--  skip unused param with _
+- skip unused param with _
 
 ```
   func f(a int, _ string) {}
@@ -936,7 +941,7 @@ This pattern works for `var` too.
   func f(a, b int, s, p string)
 ```
 
--  
+- 
 
   the zero value of a slice is nil
 
@@ -966,7 +971,7 @@ This pattern works for `var` too.
   // true
 ```
 
--  
+- 
 
   do not compare enum types with
 
@@ -1012,9 +1017,9 @@ This pattern works for `var` too.
   }
 ```
 
--  use `%+v` to print data with sufficient details
+- use `%+v` to print data with sufficient details
 
--  
+- 
 
   be careful with empty struct
 
@@ -1046,7 +1051,7 @@ This pattern works for `var` too.
   }
 ```
 
--  
+- 
 
   wrap errors with
 
@@ -1056,7 +1061,7 @@ This pattern works for `var` too.
 
   - so: `errors.Wrap(err, "additional message to a given error")`
 
--  
+- 
 
   be careful with
 
@@ -1074,21 +1079,21 @@ This pattern works for `var` too.
   - but `for i, v := range a` does
   - more: https://play.golang.org/p/4b181zkB1O
 
--  
+- 
 
   reading nonexistent key from map will not panic
 
   - `value := map["no_key"]` will be zero value
   - `value, ok := map["no_key"]` is much better
 
--  
+- 
 
   do not use raw params for file operation
 
   - instead of an octal parameter like `os.MkdirAll(root, 0700)`
   - use predefined constants of this type `os.FileMode`
 
--  
+- 
 
   don't forget to specify a type for
 
@@ -1178,7 +1183,7 @@ type Request struct {
 
 ### Concurrency
 
--  
+- 
 
   best candidate to make something once in a thread-safe way is
 
@@ -1190,15 +1195,15 @@ type Request struct {
 
   - don't use flags, mutexes, channels or atomics
 
--  to block forever use `select{}`, omit channels, waiting for a signal
+- to block forever use `select{}`, omit channels, waiting for a signal
 
--  
+- 
 
   don't close in-channel, this is a responsibility of it's creator
 
   - writing to a closed channel will cause a panic
 
--  
+- 
 
   ```
   func NewSource(seed int64) Source
@@ -1234,11 +1239,11 @@ type Request struct {
 
   - more: https://golang.org/pkg/math/rand/
 
--  when you need an atomic value of a custom type use [atomic.Value](https://godoc.org/sync/atomic#Value)
+- when you need an atomic value of a custom type use [atomic.Value](https://godoc.org/sync/atomic#Value)
 
 ### Performance
 
--  
+- 
 
   do not omit
 
@@ -1250,7 +1255,7 @@ type Request struct {
 
   - 200ns speedup is negligible in most cases
 
--  
+- 
 
   always close http body aka
 
@@ -1262,7 +1267,7 @@ type Request struct {
 
   - unless you need leaked goroutine
 
--  filtering without allocating
+- filtering without allocating
 
 ```
     b := a[:0]
@@ -1275,7 +1280,7 @@ type Request struct {
 
 #### To help compiler to remove bound checks see this pattern `_ = b[7]`
 
--  
+- 
 
   ```
   time.Time
@@ -1297,7 +1302,7 @@ type Request struct {
 
   - it's relevant only for big number of `time.Time`, use timestamp instead
 
--  
+- 
 
   prefer
 
@@ -1319,7 +1324,7 @@ type Request struct {
 
   - in most cases your regex is immutable, so init it in `func init`
 
--  
+- 
 
   do not overuse
 
@@ -1336,7 +1341,7 @@ type Request struct {
   - if you are doing `fmt.Sprintf("%s%s", var1, var2)`, consider simple string concatenation.
   - if you are doing `fmt.Sprintf("%x", var)`, consider using `hex.EncodeToString` or `strconv.FormatInt(var, 16)`
 
--  
+- 
 
   always discard body e.g.
 
@@ -1358,20 +1363,20 @@ type Request struct {
     defer res.Body.Close()
 ```
 
--  
+- 
 
   don't use defer in a loop or you'll get a small memory leak
 
   - 'cause defers will grow your stack without the reason
 
--  don't forget to stop ticker, unless you need a leaked channel
+- don't forget to stop ticker, unless you need a leaked channel
 
 ```
   ticker := time.NewTicker(1 * time.Second)
   defer ticker.Stop()
 ```
 
--  
+- 
 
   use custom marshaler to speed up marshaling
 
@@ -1398,11 +1403,11 @@ type Request struct {
 ```
 
 -  `sync.Map` isn't a silver bullet, do not use it without a strong reasons
-  - more: https://github.com/golang/go/blob/master/src/sync/map.go#L12
+   - more: https://github.com/golang/go/blob/master/src/sync/map.go#L12
 -  storing non-pointer values in `sync.Pool` allocates memory
-  - more: https://github.com/dominikh/go-tools/blob/master/cmd/staticcheck/docs/checks/SA6002
+   - more: https://github.com/dominikh/go-tools/blob/master/cmd/staticcheck/docs/checks/SA6002
 -  to hide a pointer from escape analysis you might carefully(!!!) use this func:
-  - source: https://go-review.googlesource.com/c/go/+/86976
+   - source: https://go-review.googlesource.com/c/go/+/86976
 
 ```
   // noescape hides a pointer from escape analysis.  noescape is
@@ -1415,15 +1420,15 @@ type Request struct {
   }
 ```
 
--  for fastest atomic swap you might use this `m := (*map[int]int)(atomic.LoadPointer(&ptr))`
+- for fastest atomic swap you might use this `m := (*map[int]int)(atomic.LoadPointer(&ptr))`
 
--  
+- 
 
   use buffered I/O if you do many sequential reads or writes
 
   - to reduce number of syscalls
 
--  
+- 
 
   there are 2 ways to clear a map:
 
@@ -1447,22 +1452,22 @@ type Request struct {
 
 ### Build
 
--  strip your binaries with this command `go build -ldflags="-s -w" ...`
+- strip your binaries with this command `go build -ldflags="-s -w" ...`
 
--  
+- 
 
   easy way to split test into different builds
 
   - use `// +build integration` and run them with `go test -v --tags integration .`
 
--  
+- 
 
   tiniest Go docker image
 
   - https://twitter.com/bbrodriges/status/873414658178396160
   - `CGO_ENABLED=0 go build -ldflags="-s -w" app.go && tar C app | docker import - myimage:latest`
 
--  
+- 
 
   run
 
@@ -1478,7 +1483,7 @@ type Request struct {
 
   - this will ensure that everything was generated and committed
 
--  
+- 
 
   to run Travis-CI with the latest Go use
 
@@ -1490,7 +1495,7 @@ type Request struct {
 
   - see more: https://github.com/travis-ci/travis-build/blob/master/public/version-aliases/go.json
 
--  check if there are mistakes in code formatting `diff -u <(echo -n) <(gofmt -d .)`
+- check if there are mistakes in code formatting `diff -u <(echo -n) <(gofmt -d .)`
 
 ### Testing
 
@@ -1513,7 +1518,7 @@ type Request struct {
   }
 ```
 
--  
+- 
 
   track your allocations with
 
@@ -1525,7 +1530,7 @@ type Request struct {
 
   - https://godoc.org/testing#AllocsPerRun
 
--  
+- 
 
   run your benchmarks multiple times, to get rid of noise
 
@@ -1533,9 +1538,9 @@ type Request struct {
 
 ### Tools
 
--  quick replace `gofmt -w -l -r "panic(err) -> log.Error(err)" .`
+- quick replace `gofmt -w -l -r "panic(err) -> log.Error(err)" .`
 
--  
+- 
 
   ```
   go list
@@ -1548,7 +1553,7 @@ type Request struct {
   - `go list -f '{{ .Imports }}' package`
   - `go list -f '{{ .Deps }}' package`
 
--  
+- 
 
   for fast benchmark comparison we've a
 
@@ -1564,13 +1569,13 @@ type Request struct {
 
   - https://godoc.org/golang.org/x/perf/cmd/benchstat
 
--  [go-critic](https://github.com/go-critic/go-critic) linter enforces several advices from this document
+- [go-critic](https://github.com/go-critic/go-critic) linter enforces several advices from this document
 
--  `go mod why -m ` tells us why a particular module is in the `go.mod` file
+- `go mod why -m ` tells us why a particular module is in the `go.mod` file
 
--  `GOGC=off go build ...` should speed up your builds [source](https://twitter.com/mvdan_/status/1107579946501853191)
+- `GOGC=off go build ...` should speed up your builds [source](https://twitter.com/mvdan_/status/1107579946501853191)
 
--  
+- 
 
   The memory profiler records one allocation every 512Kbytes. You can increase the rate via the
 
@@ -1603,7 +1608,7 @@ type Request struct {
   }()
 ```
 
--  
+- 
 
   check interface implementation during compilation
 
@@ -1611,13 +1616,13 @@ type Request struct {
   var _ io.Reader = (*MyFastReader)(nil)
   ```
 
--  
+- 
 
   if a param of len is nil then it's zero
 
   - https://golang.org/pkg/builtin/#len
 
--  anonymous structs are cool
+- anonymous structs are cool
 
 ```
   var  hits  struct { 
@@ -1629,7 +1634,7 @@ type Request struct {
   
 ```
 
--  
+- 
 
   ```
   httputil.DumpRequest
@@ -1641,7 +1646,7 @@ type Request struct {
 
 - 要获取调用堆栈，我们已经`runtime.Caller` https://golang.org/pkg/runtime/#Caller
 
--  封送任意JSON，您可以封送 `map[string]interface{}{}`
+- 封送任意JSON，您可以封送 `map[string]interface{}{}`
 
 - 配置您的位置，
 
@@ -1659,8 +1664,174 @@ type Request struct {
 
   - 将此行添加到您的`bashrc`（或类似的）`export CDPATH=$CDPATH:$GOPATH/src`
 
--  切片中的简单随机元素
+- 切片中的简单随机元素
 
   - `[]string{"one", "two", "three"}[rand.Intn(3)]`
 
 - 
+
+
+
+
+
+### 避免包重命名导入，防止名称冲突；
+
+好的包名称不需要重命名。如果发生命名冲突，则更倾向于重命名最接近本地的包或特定于项目的包。
+
+包导入按组进行组织，组与组之间有空行。标准库包始终位于第一组中。
+
+```go
+package main
+import (
+    "fmt"
+    "hash/adler32"
+    "os"
+    "appengine/foo"
+    "appengine/user"
+    "github.com/foo/bar"
+    "rsc.io/goversion/version"
+)
+```
+
+[goimports](https://godoc.org/golang.org/x/tools/cmd/goimports) 会为你做这件事。
+
+
+
+
+
+## mport Dot
+
+部分包由于循环依赖，不能作为测试包的一部分进行测试时，以`.`形式导入它们可能很有用：
+
+```go
+package foo_test
+import (
+    "bar/testutil" // also imports "foo"
+    . "foo"
+)
+```
+
+在这种情况下，测试文件不能位于 foo 包中，因为它使用的 bar/testutil 依赖于 foo 包。所以我们使用`import .`形式使得测试文件伪装成 foo 包的一部分，即使它不是。除了这种情况，不要在程序中使用 `import .`。它将使程序更难阅读——因为不清楚如 Quux 这样的名称是否是当前包中或导入包中的顶级标识符。
+
+
+
+### Go 对多返回值的支持提供了一种更好的解决方案。
+
+函数应返回一个附加值以指示其他返回值是否有效，而不是要求客户端检查 in-band 错误值。此附加值可能是一个 error，或者在不需要解释时可以是布尔值。它应该是最终的返回值。
+
+```
+// Lookup returns the value for key or ok=false if there is no mapping for key.
+func Lookup(key string) (value string, ok bool)
+```
+
+这可以防止调用者错误地使用返回结果：
+
+```
+Parse(Lookup(key))  // compile-time error
+```
+
+并鼓励更健壮和可读性强的代码：
+
+```
+value, ok := Lookup(key)if !ok  {    return fmt.Errorf("no value for %q", key)}return Parse(value)
+```
+
+此规则适用于公共导出函数，但对于未导出函数也很有用。
+
+返回值如 nil，“”，0 和 -1 在他们是函数的有效返回结果时是可接收的，即调用者不需要将它们与其他值做分别处理。
+
+某些标准库函数（如 “strings” 包中的函数）会返回 in-band 错误值。这大大简化了字符串操作，代价是需要程序员做更多事。通常，Go 代码应返回表示错误的附加值。
+
+
+
+## Indent Error Flow
+
+Try to keep the normal code path at a minimal indentation, and indent the error handling, dealing with it first. This improves the readability of the code by permitting visually scanning the normal path quickly. For instance, don't write:
+
+尝试将正常的代码路径保持在最小的缩进处，优先处理错误并缩进。通过允许快速可视化扫描正常路径来提高代码的可读性。例如，不要写：
+
+```go
+if err != nil {
+    // error handling
+} else {
+    // normal code
+}
+```
+
+相反，书写以下代码：
+
+```go
+if err != nil {
+    // error handling
+    return // or continue, etc.
+}
+// normal code
+```
+
+如果 if 语句具有初始化语句，例如：
+
+```go
+if x, err := f(); err != nil {
+    // error handling
+    return
+} else {
+    // use x
+}
+```
+
+那么这可能需要将短变量声明移动到新行：
+
+```go
+x, err := f()
+if err != nil {
+    // error handling
+    return
+}
+// use x
+```
+
+
+
+## Initialisms
+
+名称中的单词是首字母或首字母缩略词（例如 “URL” 或 “NATO” ）需要具有相同的大小写规则。例如，“URL” 应显示为 “URL” 或 “url” （如 “urlPony” 或 “URLPony” ），而不是 “Url”。举个例子：ServeHTTP 不是 ServeHttp。对于具有多个初始化 “单词” 的标识符，也应当显示为 “xmlHTTPRequest” 或 “XMLHTTPRequest”。
+
+当 “ID” 是 “identifier” 的缩写时，此规则也适用于 “ID” ，因此请写 “appID” 而不是“appId”。
+
+由协议缓冲区编译器生成的代码不受此规则的约束。人工编写的代码比机器编写的代码要保持更高的标准。
+
+
+
+
+
+## Useful Test Failures
+
+失败的测试也应该提供有用的消息，说明错误，展示输入内容，实际内容以及预期结果。编写一堆 assertFoo 帮助程序可能很吸引人，但请确保您的帮助程序能产生有用的错误消息。假设调试失败测试的人不是你，也不是你的团队。典型的 Go 失败测试如：
+
+```go
+if got != tt.want {
+    t.Errorf("Foo(%q) = %d; want %d", tt.in, got, tt.want) // or Fatalf, if test can't test anything more past this point
+}
+```
+
+请注意，此处的命令是 实际结果!=预期结果，并且错误消息也使用该命令格式。然而一些测试框架鼓励倒写输出格式，如 预期结果 != 实际结果，“预期结果为 0，实际结果为 x”，等等。但是 Go 没有这样做。
+
+如果这看起来像是打了很多字，你可能想写一个表驱动的测试。
+
+在使用具有不同输入的测试帮助程序时以消除失败测试歧义的另一种常见技术是使用不同的 TestFoo 函数包装每个调用者，而测试名称也根据对应的输入命名：
+
+```go
+func TestSingleValue(t *testing.T) { testHelper(t, []int{80}) }
+func TestNoValues(t *testing.T)    { testHelper(t, []int{}) }
+```
+
+In any case, the onus is on you to fail with a helpful message to whoever's debugging your code in the future.
+
+在任何情况下，你都有责任向可能会在将来调试你的代码的开发者提供有用的消息。
+
+
+
+### 不错链接：
+
+https://www.zybuluo.com/wddpct/note/1264988
+
