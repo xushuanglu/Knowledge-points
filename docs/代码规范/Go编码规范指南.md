@@ -52,7 +52,7 @@ import (
 )
 ```
 
-如果你的包引入了三种类型的包，标准库包，程序内部包，第三方包，建议采用如下方式进行组织你的包：
+如果你的包引入了三种类型的包，**标准库包**，**程序内部包**，**第三方包**，建议采用如下方式进行组织你的包：
 
 ```
 import (
@@ -91,7 +91,7 @@ var (
 )
 ```
 
-在函数外部申明必须使用var,不要采用`:=`，容易踩到变量的作用域的问题。
+**在函数外部申明必须使用var,不要采用`:=`，容易踩到变量的作用域的问题。**
 
 ## 自定义类型的string循环问题
 
@@ -125,7 +125,7 @@ func Foo(a int, b int) (string, ok){
 func (f *Foo) Location() (float64, float64, error)
 ```
 
-下面的代码就更清晰了：
+**下面的代码就更清晰了：**
 
 ```
 // Location returns f's latitude and longitude.
@@ -1835,3 +1835,487 @@ In any case, the onus is on you to fail with a helpful message to whoever's debu
 
 https://www.zybuluo.com/wddpct/note/1264988
 
+
+
+
+
+#### Multiple if-else statements can be collapsed into a switch
+
+```go
+// NOT BAD
+if foo() {
+    // ...
+} else if bar == baz {
+    // ...
+} else {
+    // ...
+}
+
+// BETTER
+switch {
+case foo():
+    // ...
+case bar == baz:
+    // ...
+default:
+    // ...
+}
+```
+
+
+
+
+
+#### Prefer `30 * time.Second` instead of `time.Duration(30) * time.Second`
+
+You don't need to wrap untyped const in a type, compiler will figure it out. Also prefer to move const to the first place:
+
+```go
+// BAD
+delay := time.Second * 60 * 24 * 60
+
+// VERY BAD
+delay := 60 * time.Second * 60 * 24
+
+// GOOD
+delay := 24 * 60 * 60 * time.Second
+```
+
+
+
+
+
+#### Use `time.Duration` instead of `int64` + variable name
+
+```go
+// BAD
+var delayMillis int64 = 15000
+
+// GOOD
+var delay time.Duration = 15 * time.Second
+```
+
+#### Group `const` declarations by type and `var` by logic and/or type
+
+```go
+// BAD
+const (
+    foo = 1
+    bar = 2
+    message = "warn message"
+)
+
+// MOSTLY BAD
+const foo = 1
+const bar = 2
+const message = "warn message"
+
+// GOOD
+const (
+    foo = 1
+    bar = 2
+)
+
+const message = "warn message"
+```
+
+
+
+
+
+#### Don't depend on the evaluation order, especially in a return statement.
+
+```go
+// BAD
+return res, json.Unmarshal(b, &res)
+
+// GOOD
+err := json.Unmarshal(b, &res)
+return res, err
+```
+
+
+
+
+
+### Testing
+
+-  prefer `package_test` name for tests, rather than `package`
+-  `go test -short` allows to reduce set of tests to be runned
+
+```go
+  func TestSomething(t *testing.T) {
+    if testing.Short() {
+      t.Skip("skipping test in short mode.")
+    }
+  }
+```
+
+
+
+
+
+### 零值Mutexes是有效的
+
+零值的 `sync.Mutex` 和 `sync.RWMutex` 是有效的，所以基本是不需要一个指向 `Mutex` 的指针的。
+
+| Bad                                 | Good                            |
+| ----------------------------------- | ------------------------------- |
+| mu := new(sync.Mutex)<br/>mu.Lock() | var mu sync.Mutex<br/>mu.Lock() |
+
+
+
+#### 返回 Slices 和 Maps
+
+同理，谨慎提防用户修改暴露内部状态的 slices 和 maps 。
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| type Stats struct {<br/>  sync.Mutex<br/><br/>  counters map[string]int<br/>}<br/><br/>// Snapshot 返回当前状态<br/>func (s *Stats) Snapshot() map[string]int {<br/>  s.Lock()<br/>  defer s.Unlock()<br/><br/>  return s.counters<br/>}<br/><br/>// snapshot 不再受锁保护了！<br/>snapshot := stats.Snapshot() | type Stats struct {<br/>  sync.Mutex<br/><br/>  counters map[string]int<br/>}<br/><br/>func (s *Stats) Snapshot() map[string]int {<br/>  s.Lock()<br/>  defer s.Unlock()<br/><br/>  **result := make(map[string]int, len(s.counters))<br/>  for k, v := range s.counters {<br/>    result[k] = v<br/>  }<br/>  return result<br/>}**<br/><br/>// snapshot 是一分拷贝的内容了<br/>snapshot := stats.Snapshot() |
+
+### 
+
+
+
+### 使用 defer 来做清理工作
+
+使用 defer 来做资源的清理工作，例如文件的关闭和锁的释放。
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| p.Lock()<br/>if p.count < 10 {<br/>  p.Unlock()<br/>  return p.count<br/>}<br/><br/>p.count++<br/>newCount := p.count<br/>p.Unlock()<br/><br/>return newCount<br/><br/>// 当有多处 return 时容易忘记释放锁 | p.Lock()<br/>defer p.Unlock()<br/><br/>if p.count < 10 {<br/>  return p.count<br/>}<br/><br/>p.count++<br/>return p.count<br/><br/>// 可读性更高 |
+
+defer 只有非常小的性能开销，只有当你能证明你的函数执行时间在纳秒级别时才可以不使用它。使用 defer 对代码可读性的提高是非常值得的，因为使用 defer 的成本真的非常小。特别是在一些主要是做内存操作的长函数中，函数中的其他计算操作远比 `defer` 重要。
+
+
+
+### Channel 的大小设为 1 还是 None
+
+通道的大小通常应该设为 1 或者设为无缓冲类型。默认情况下，通道是无缓冲类型的，大小为 0 。将通道大小设为其他任何数值都应该经过深思熟虑。认真考虑如何确定其大小，是什么阻止了工作中的通道被填满并阻塞了写入操作，以及何种情况会发生这样的现象。
+
+| Bad                                             | Good                                                         |
+| ----------------------------------------------- | ------------------------------------------------------------ |
+| // 足以满足任何人！<br/>c := make(chan int, 64) | // 大小 为 1<br/>c := make(chan int, 1) // or<br/>// 无缓冲 channel, 大小为 0<br/>c := make(chan int) |
+
+
+
+
+
+### 错误类型
+
+有很多种方法来声明 errors:
+
+- `errors.New` 声明简单的静态字符串错误信息
+- `fmt.Errorf` 声明格式化的字符串错误信息
+- 为自定义类型实现 `Error()` 方法
+- 通过 `"pkg/errors".Wrap` 包装错误类型
+
+返回错误时，请考虑以下因素来作出最佳选择：
+
+- 这是一个不需要其他额外信息的简单错误吗？如果是，使用`error.New`。
+
+- 客户需要检测并处理此错误吗？如果是，那应该自定义类型，并实现 `Error()` 方法。
+
+- 是否是在传递一个下游函数返回的错误？如果是，请查看[error 封装](https://note.mogutou.xyz/articles/2019/10/13/1570978862812.html#error-wrapping)部分。
+
+- 其他，使用 `fmt.Errorf` 。
+
+  
+
+如果客户需要检测错误，并且是通过 `errors.New` 创建的一个简单的错误，请使用var 声明这个错误类型。
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| // package foo<br/><br/>func Open() error {<br/>  return errors.New("could not open")<br/>}<br/><br/>// package bar<br/><br/>func use() {<br/>  if err := foo.Open(); err != nil {<br/>    if err.Error() == "could not open" {<br/>      // handle<br/>    } else {<br/>      panic("unknown error")<br/>    }<br/>  }<br/>} | // package foo<br/><br/>var ErrCouldNotOpen = errors.New("could not open")<br/><br/>func Open() error {<br/>  return ErrCouldNotOpen<br/>}<br/><br/>// package bar<br/><br/>if err := foo.Open(); err != nil {<br/>  if err == foo.ErrCouldNotOpen {<br/>    // handle<br/>  } else {<br/>    panic("unknown error")<br/>  }<br/>} |
+
+
+
+
+
+### Error 封装
+
+下面提供三种主要的方法来传递函数调用失败返回的错误：
+
+- 如果想要维护原始错误类型并且不需要添加额外的上下文信息，就直接返回原始错误。
+- 使用 `"pkg/errors".Wrap` 来增加上下文信息，这样返回的错误信息中就会包含更多的上下文信息，并且通过 `"pkg/errors".Cause` 可以提取出原始错误信息。
+- 如果调用方不需要检测或处理特定的错误情况，就直接使用 `fmt.Errorf` 。
+
+情况允许的话建议增加更多的上下文信息来代替诸如 `"connection refused"` 之类模糊的错误信息。返回 `"failed to call service foo: connection refused"` 用户可以知道更多有用的错误信息。
+
+在将上下文信息添加到返回的错误时，请避免使用 "failed to" 之类的短语以保持信息简洁，这些短语描述的状态是显而易见的，并且会随着错误在堆栈中的传递而逐渐堆积：
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| s, err := store.New()<br/>if err != nil {<br/>    return fmt.Errorf(<br/>        "failed to create new store: %s", err)<br/>} | s, err := store.New()<br/>if err != nil {<br/>    return fmt.Errorf(<br/>        "new store: %s", err)<br/>} |
+| `failed to x: failed to y: failed to create new store: the error ` | `x: y: new store: the error `                                |
+
+但是，如果这个错误信息是会被发送到另一个系统时，必须清楚的表明这是一个错误（例如，日志中 `err` 标签或者 `Failed` 前缀）。
+
+
+
+
+
+### 处理类型断言失败
+
+[类型断言](https://golang.org/ref/spec#Type_assertions)的单返回值形式在遇到类型错误时会直接 panic 。因此，请始终使用 "comma ok" 惯用方法。
+
+| Bad                | Good                                                         |
+| ------------------ | ------------------------------------------------------------ |
+| `t := i.(string) ` | t, ok := i.(string)<br/>if !ok {<br/>  // handle the error gracefully<br/>} |
+
+
+
+
+
+### strconv 性能优于 fmt
+
+将原语转换为字符串或从字符串转换时，`strconv` 速度比 `fmt` 更快。
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| for i := 0; i < b.N; i++ {<br/>  s := fmt.Sprint(rand.Int())<br/>} | for i := 0; i < b.N; i++ {<br/>  s := strconv.Itoa(rand.Int())<br/>} |
+| `BenchmarkFmtSprint-4    143 ns/op    2 allocs/op `          | `BenchmarkStrconv-4    64.2 ns/op    1 allocs/op`            |
+
+
+
+
+
+## 代码风格
+
+### 声明分组
+
+Go 支持将相似的声明分组：
+
+| Bad                       | Good                               |
+| ------------------------- | ---------------------------------- |
+| import "a"<br/>import "b" | import (<br/>  "a"<br/>  "b"<br/>) |
+
+分组同样适用于常量、变量和类型的声明：
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| const a = 1<br/>const b = 2<br/><br/>var a = 1<br/>var b = 2<br/><br/>type Area float64<br/>type Volume float64 | const (<br/>  a = 1<br/>  b = 2<br/>)<br/><br/>var (<br/>  a = 1<br/>  b = 2<br/>)<br/><br/>type (<br/>  Area float64<br/>  Volume float64<br/>) |
+
+仅将相似的声明放在同一组。不相关的声明不要放在同一个组内。
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| type Operation int<br/><br/>const (<br/>  Add Operation = iota + 1<br/>  Subtract<br/>  Multiply<br/>  ENV_VAR = "MY_ENV"<br/>) | type Operation int<br/><br/>const (<br/>  Add Operation = iota + 1<br/>  Subtract<br/>  Multiply<br/>)<br/><br/>const ENV_VAR = "MY_ENV" |
+
+声明分组可以在任意位置使用。例如，可以在函数内部使用。
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| func f() string {<br/>  var red = color.New(0xff0000)<br/>  var green = color.New(0x00ff00)<br/>  var blue = color.New(0x0000ff)<br/><br/>  ...<br/>} | func f() string {<br/>  var (<br/>    red   = color.New(0xff0000)<br/>    green = color.New(0x00ff00)<br/>    blue  = color.New(0x0000ff)<br/>  )<br/><br/>  ...<br/>} |
+
+
+
+
+
+### Import 组内顺序
+
+import 有两类导入组：
+
+- 标准库
+- 其他
+
+goimports 默认的分组如下：
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| import (<br/>  "fmt"<br/>  "os"<br/>  "go.uber.org/atomic"<br/>  "golang.org/x/sync/errgroup"<br/>) | import (<br/>  "fmt"<br/>  "os"<br/><br/>  "go.uber.org/atomic"<br/>  "golang.org/x/sync/errgroup"<br/>) |
+
+### 包名
+
+当为包命名时，请注意如下事项：
+
+- 字符全部小写，没有大写或者下划线
+- 在大多数情况下引入包不需要去重命名
+- 简单明了，命名需要能够在被导入的地方准确识别
+- 不要使用复数。例如，`net/url`, 而不是 `net/urls`
+- 不要使用“common”，“util”，“shared”或“lib”之类的。这些都是不好的，表达信息不明的名称
+
+
+
+
+
+### 包导入别名
+
+如果包的名称与导入路径的最后一个元素不匹配，那必须使用导入别名。
+
+```go
+import (
+  "net/http"
+
+  client "example.com/client-go"
+  trace "example.com/trace/v2"
+)
+```
+
+在其他情况下，除非导入的包名之间有直接冲突，否则应避免使用导入别名。
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| import (<br/>  "fmt"<br/>  "os"<br/><br/><br/>  nettrace "golang.net/x/trace"<br/>) | import (<br/>  "fmt"<br/>  "os"<br/>  "runtime/trace"<br/><br/>  nettrace "golang.net/x/trace"<br/>) |
+
+### 
+
+### 函数分组与排布顺序
+
+- 函数应该粗略的按照调用顺序来排布
+- 同一文件中的函数应该按照接收器的类型来分组排布
+
+所以，公开的函数应排布在文件首，并在 struct、const 和 var 定义之后。
+
+newXYZ()/ NewXYZ() 之类的函数应该排布在声明类型之后，具有接收器的其余方法之前。
+
+因为函数是按接收器类别分组的，所以普通工具函数应排布在文件末尾。
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| func (s *something) Cost() {<br/>  return calcCost(s.weights)<br/>}<br/><br/>type something struct{ ... }<br/><br/>func calcCost(n int[]) int {...}<br/><br/>func (s *something) Stop() {...}<br/><br/>func newSomething() *something {<br/>    return &something{}<br/>} | type something struct{ ... }<br/><br/>func newSomething() *something {<br/>    return &something{}<br/>}<br/><br/>func (s *something) Cost() {<br/>  return calcCost(s.weights)<br/>}<br/><br/>func (s *something) Stop() {...}<br/><br/>func calcCost(n int[]) int {...} |
+
+
+
+
+
+### 减少嵌套
+
+代码应该通过尽可能地先处理错误情况/特殊情况，并且及早返回或继续下一循环来减少嵌套。尽量减少嵌套于多个级别的代码数量。
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| for _, v := range data {<br/>  if v.F1 == 1 {<br/>    v = process(v)<br/>    if err := v.Call(); err == nil {<br/>      v.Send()<br/>    } else {<br/>      return err<br/>    }<br/>  } else {<br/>    log.Printf("Invalid v: %v", v)<br/>  }<br/>} | for _, v := range data {<br/>  if v.F1 != 1 {<br/>    log.Printf("Invalid v: %v", v)<br/>    continue<br/>  }<br/><br/>  v = process(v)<br/>  if err := v.Call(); err != nil {<br/>    return err<br/>  }<br/>  v.Send()<br/>} |
+
+
+
+### 不必要的 else
+
+如果一个变量在 if 的两个分支中都设置了，那应该使用单个 if 。
+
+| Bad                                                          | Good                                   |
+| ------------------------------------------------------------ | -------------------------------------- |
+| var a int<br/>if b {<br/>  a = 100<br/>} else {<br/>  a = 10<br/>} | a := 10<br/>if b {<br/>  a = 100<br/>} |
+
+
+
+
+
+### 全局变量声明
+
+在顶层使用标准 var 关键字声明变量时，不要显式指定类型，除非它与表达式的返回类型不同。
+
+| Bad                                                         | Good                                                         |
+| ----------------------------------------------------------- | ------------------------------------------------------------ |
+| var _s string = F()<br/><br/>func F() string { return "A" } | var _s = F()<br/>// F 已经明确声明返回一个字符串类型，我们没有必要显式指定 _s 的类型<br/><br/>func F() string { return "A" } |
+
+如果表达式的返回类型与所需的类型不完全匹配，请显示指定类型。
+
+```go
+type myError struct{}
+
+func (myError) Error() string { return "error" }
+
+func F() myError { return myError{} }
+
+var _e error = F()
+// F 返回一个 myError 类型的实例，但是我们要 error 类型
+```
+
+### 
+
+### 结构体中的嵌入类型
+
+嵌入式类型（例如 mutex ）应该放置在结构体字段列表的顶部，并且必须以空行与常规字段隔开。
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| type Client struct {<br/>  version int<br/>  http.Client<br/>} | type Client struct {<br/>  http.Client<br/><br/>  version int<br/>} |
+
+
+
+### 使用字段名来初始化结构
+
+初始化结构体时，必须指定字段名称。`go vet` 强制执行。
+
+| Bad                            | Good                                                         |
+| ------------------------------ | ------------------------------------------------------------ |
+| k := User{"John", "Doe", true} | k := User{<br/>    FirstName: "John",<br/>    LastName: "Doe",<br/>    Admin: true,<br/>} |
+
+
+
+
+
+### 局部变量声明
+
+如果声明局部变量时需要明确设值，应使用短变量声明形式（:=）。
+
+| Bad              | Good          |
+| ---------------- | ------------- |
+| `var s = "foo" ` | `s := "foo" ` |
+
+但是，在某些情况下，使用 var 关键字声明变量，默认的初始化值会更清晰。例如，声明空切片。
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| func f(list []int) {<br/>  filtered := []int{}<br/>  for _, v := range list {<br/>    if v > 10 {<br/>      filtered = append(filtered, v)<br/>    }<br/>  }<br/>} | func f(list []int) {<br/>  var filtered []int<br/>  for _, v := range list {<br/>    if v > 10 {<br/>      filtered = append(filtered, v)<br/>    }<br/>  }<br/>} |
+
+
+
+### nil是一个有效的slice
+
+nil 是一个有效的长度为 0 的 slice，这意味着：
+
+- 不应明确返回长度为零的切片，而应该直接返回 nil 。
+
+  | Bad                                     | Good                                |
+  | --------------------------------------- | ----------------------------------- |
+  | if x == "" {<br/>  return []int{}<br/>} | if x == "" {<br/>  return nil<br/>} |
+
+- 若要检查切片是否为空，始终使用 `len(s) == 0` ，不要与 nil 比较来检查。
+
+  | Bad                                                         | Good                                                         |
+  | ----------------------------------------------------------- | ------------------------------------------------------------ |
+  | func isEmpty(s []string) bool {<br/>  return s == nil<br/>} | func isEmpty(s []string) bool {<br/>  return len(s) == 0<br/>} |
+
+- 零值切片（通过 var 声明的切片）可直接使用，无需调用 make 创建。
+
+  | Bad                                                          | Good                                                         |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | nums := []int{}<br/>// or, nums := make([]int)<br/><br/>if add1 {<br/>  nums = append(nums, 1)<br/>}<br/><br/>if add2 {<br/>  nums = append(nums, 2)<br/>} | var nums []int<br/><br/>if add1 {<br/>  nums = append(nums, 1)<br/>}<br/><br/>if add2 {<br/>  nums = append(nums, 2)<br/>} |
+
+### 
+
+### 缩小变量作用域
+
+如果有可能，尽量缩小变量作用范围，除非这样与减少嵌套的规则冲突。
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| err := ioutil.WriteFile(name, data, 0644)<br/>if err != nil {<br/> return err<br/>} | if err := ioutil.WriteFile(name, data, 0644); err != nil {<br/> return err<br/>} |
+
+
+
+
+
+### 初始化结构体引用
+
+在初始化结构引用时，使用 `&T{}` 而非 `new(T)`，以使其与结构体初始化方式保持一致。
+
+| Bad                                                          | Good                                                    |
+| ------------------------------------------------------------ | ------------------------------------------------------- |
+| sval := T{Name: "foo"}<br/><br/>// 定义方式不一致<br/>sptr := new(T)<br/>sptr.Name = "bar" | sval := T{Name: "foo"}<br/><br/>sptr := &T{Name: "bar"} |
+
+
+
+### 格式化字符串放在 Printf 外部
+
+如果为 Printf-style 函数声明格式化字符串，将格式化字符串放在函数外面 ，并将其设置为 const 常量。
+
+这有助于 `go vet` 对格式字符串进行静态分析。
+
+| Bad                                                          | Good                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| `msg := "unexpected values %v, %v\n" fmt.Printf(msg, 1, 2) ` | `const msg = "unexpected values %v, %v\n" fmt.Printf(msg, 1, 2) ` |
+
+### 为 Printf 样式函数命名
